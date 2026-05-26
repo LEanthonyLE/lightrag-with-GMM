@@ -68,6 +68,7 @@ from lightrag.constants import (
     DEFAULT_ENTITY_NAME_MAX_LENGTH,
 )
 from lightrag.kg.shared_storage import get_storage_keyed_lock
+from lightrag.gmm_k import gmm_filter_results
 import time
 from dotenv import load_dotenv
 
@@ -3548,6 +3549,23 @@ async def _get_vector_context(
             )
             return []
 
+        # GMM auto-k: filter by score distribution after embedding-based VDB query
+        if query_param.auto_top_k and len(results) >= 3:
+            raw_count = len(results)
+            gmm_max = query_param.gmm_max_k
+            gmm_min = query_param.gmm_min_k
+            results, selected_k = gmm_filter_results(
+                results,
+                score_key="distance",
+                score_direction="lower_better",
+                min_k=gmm_min,
+                max_k=gmm_max,
+            )
+            logger.info(
+                f"[GMM-K] stage=vector_chunks raw={raw_count} "
+                f"selected_k={selected_k} max_k={gmm_max} min_k={gmm_min}"
+            )
+
         valid_chunks = []
         for result in results:
             if "content" in result:
@@ -3555,8 +3573,9 @@ async def _get_vector_context(
                     "content": result["content"],
                     "created_at": result.get("created_at", None),
                     "file_path": result.get("file_path", "unknown_source"),
-                    "source_type": "vector",  # Mark the source type
-                    "chunk_id": result.get("id"),  # Add chunk_id for deduplication
+                    "source_type": "vector",
+                    "chunk_id": result.get("id"),
+                    "distance": result.get("distance"),
                 }
                 valid_chunks.append(chunk_with_metadata)
 

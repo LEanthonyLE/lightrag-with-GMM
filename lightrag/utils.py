@@ -2815,13 +2815,14 @@ async def process_chunks_unified(
             if not unique_chunks:
                 return []
 
-    # 3. Apply chunk_top_k limiting if specified
-    if query_param.chunk_top_k is not None and query_param.chunk_top_k > 0:
-        if len(unique_chunks) > query_param.chunk_top_k:
-            unique_chunks = unique_chunks[: query_param.chunk_top_k]
-        logger.debug(
-            f"Kept chunk_top-k: {len(unique_chunks)} chunks (deduplicated original: {origin_count})"
-        )
+    # 3. Apply chunk_top_k limiting if specified (skip when GMM auto-k is active)
+    if not getattr(query_param, "auto_top_k", False):
+        if query_param.chunk_top_k is not None and query_param.chunk_top_k > 0:
+            if len(unique_chunks) > query_param.chunk_top_k:
+                unique_chunks = unique_chunks[: query_param.chunk_top_k]
+            logger.debug(
+                f"Kept chunk_top-k: {len(unique_chunks)} chunks (deduplicated original: {origin_count})"
+            )
 
     # 4. Token-based final truncation
     tokenizer = global_config.get("tokenizer")

@@ -168,6 +168,21 @@ class QueryParam:
     containing citation information for the retrieved content.
     """
 
+    auto_top_k: bool = field(
+        default_factory=lambda: os.getenv("AUTO_TOP_K", "false").lower() == "true"
+    )
+    """When True, GMM auto-selects k from similarity score distribution
+    instead of using the static top_k and chunk_top_k values.
+    top_k becomes the max retrieval pool size (upper bound) for GMM filtering."""
+
+    gmm_min_k: int = field(default=3)
+    """Minimum number of items GMM auto-selection will return (safety floor)."""
+
+    gmm_max_k: int = field(
+        default_factory=lambda: int(os.getenv("GMM_MAX_K", "60"))
+    )
+    """Maximum number of items GMM auto-selection will return (safety ceiling)."""
+
 
 @dataclass
 class StorageNameSpace(ABC):
