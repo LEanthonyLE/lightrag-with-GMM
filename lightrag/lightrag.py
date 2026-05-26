@@ -225,7 +225,7 @@ class LightRAG:
     vector_storage: str = field(default="NanoVectorDBStorage")
     """Storage backend for vector embeddings."""
 
-    graph_storage: str = field(default="NetworkXStorage")
+    graph_storage: str = field(default="Neo4JStorage")
     """Storage backend for knowledge graphs."""
 
     doc_status_storage: str = field(default="JsonDocStatusStorage")
@@ -2806,6 +2806,9 @@ class LightRAG:
             model_func=param.model_func,
             user_prompt=param.user_prompt,
             enable_rerank=param.enable_rerank,
+            auto_top_k=param.auto_top_k,
+            gmm_min_k=param.gmm_min_k,
+            gmm_max_k=param.gmm_max_k,
         )
 
         query_result = None

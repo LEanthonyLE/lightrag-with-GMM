@@ -175,13 +175,18 @@ class QueryParam:
     instead of using the static top_k and chunk_top_k values.
     top_k becomes the max retrieval pool size (upper bound) for GMM filtering."""
 
-    gmm_min_k: int = field(default=3)
+    gmm_min_k: int = field(default=1)
     """Minimum number of items GMM auto-selection will return (safety floor)."""
 
     gmm_max_k: int = field(
-        default_factory=lambda: int(os.getenv("GMM_MAX_K", "60"))
+        default_factory=lambda: int(os.getenv("GMM_MAX_K", "5"))
     )
     """Maximum number of items GMM auto-selection will return (safety ceiling)."""
+
+    gmm_info: dict | None = field(default=None, init=False, repr=False)
+    """Transient side-channel populated by _get_vector_context during query.
+    Contains GMM filtering metrics: enabled, raw_count, selected_k, min_k, max_k.
+    Not a constructor parameter."""
 
 
 @dataclass

@@ -2557,6 +2557,7 @@ source = { editable = "." }
 dependencies = [
     { name = "aiohttp" },
     { name = "configparser" },
+    { name = "fastapi" },
     { name = "google-api-core" },
     { name = "google-genai" },
     { name = "json-repair" },
@@ -2575,6 +2576,7 @@ dependencies = [
     { name = "setuptools" },
     { name = "tenacity" },
     { name = "tiktoken" },
+    { name = "uvicorn" },
     { name = "xlsxwriter" },
 ]
 
@@ -2818,6 +2820,7 @@ requires-dist = [
     { name = "datasets", marker = "extra == 'evaluation'", specifier = ">=4.3.0" },
     { name = "distro", marker = "extra == 'api'" },
     { name = "docling", marker = "sys_platform != 'darwin' and extra == 'docling'", specifier = ">=2.0.0,<3.0.0" },
+    { name = "fastapi", specifier = ">=0.120.2" },
     { name = "fastapi", marker = "extra == 'api'" },
     { name = "google-api-core", specifier = ">=2.0.0,<3.0.0" },
     { name = "google-api-core", marker = "extra == 'api'", specifier = ">=2.0.0,<3.0.0" },
@@ -2890,6 +2893,7 @@ requires-dist = [
     { name = "tenacity", marker = "extra == 'api'" },
     { name = "tiktoken" },
     { name = "tiktoken", marker = "extra == 'api'" },
+    { name = "uvicorn", specifier = ">=0.38.0" },
     { name = "uvicorn", marker = "extra == 'api'" },
     { name = "voyageai", marker = "extra == 'offline-llm'", specifier = ">=0.2.0,<1.0.0" },
     { name = "xlsxwriter", specifier = ">=3.1.0" },

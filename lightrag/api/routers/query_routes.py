@@ -93,6 +93,23 @@ class QueryRequest(BaseModel):
         description="Enable reranking for retrieved text chunks. If True but no rerank model is configured, a warning will be issued. Default is True.",
     )
 
+    auto_top_k: Optional[bool] = Field(
+        default=None,
+        description="When True, GMM auto-selects k from similarity score distribution instead of static top_k/chunk_top_k.",
+    )
+
+    gmm_min_k: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Minimum number of items GMM auto-selection will return.",
+    )
+
+    gmm_max_k: Optional[int] = Field(
+        default=None,
+        ge=1,
+        description="Maximum number of items GMM auto-selection will return.",
+    )
+
     include_references: Optional[bool] = Field(
         default=True,
         description="If True, includes reference list in responses. Affects /query and /query/stream endpoints. /query/data always includes references.",

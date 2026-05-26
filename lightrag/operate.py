@@ -3565,6 +3565,13 @@ async def _get_vector_context(
                 f"[GMM-K] stage=vector_chunks raw={raw_count} "
                 f"selected_k={selected_k} max_k={gmm_max} min_k={gmm_min}"
             )
+            query_param.gmm_info = {
+                "enabled": True,
+                "raw_count": raw_count,
+                "selected_k": selected_k,
+                "min_k": gmm_min,
+                "max_k": gmm_max,
+            }
 
         valid_chunks = []
         for result in results:
@@ -3575,7 +3582,9 @@ async def _get_vector_context(
                     "file_path": result.get("file_path", "unknown_source"),
                     "source_type": "vector",
                     "chunk_id": result.get("id"),
-                    "distance": result.get("distance"),
+                    "distance": float(result.get("distance"))
+                    if result.get("distance") is not None
+                    else None,
                 }
                 valid_chunks.append(chunk_with_metadata)
 
@@ -4352,7 +4361,7 @@ async def _build_query_context(
         "high_level": hl_keywords_list,
         "low_level": ll_keywords_list,
     }
-    raw_data["metadata"]["processing_info"] = {
+    processing_info = {
         "total_entities_found": len(search_result.get("final_entities", [])),
         "total_relations_found": len(search_result.get("final_relations", [])),
         "entities_after_truncation": len(
@@ -4364,6 +4373,9 @@ async def _build_query_context(
         "merged_chunks_count": len(merged_chunks),
         "final_chunks_count": len(raw_data.get("data", {}).get("chunks", [])),
     }
+    if query_param.gmm_info:
+        processing_info["gmm"] = query_param.gmm_info
+    raw_data["metadata"]["processing_info"] = processing_info
 
     logger.debug(
         f"[_build_query_context] Context length: {len(context) if context else 0}"
@@ -5093,10 +5105,13 @@ async def naive_query(
         "high_level": [],  # naive mode has no keyword extraction
         "low_level": [],  # naive mode has no keyword extraction
     }
-    raw_data["metadata"]["processing_info"] = {
+    processing_info = {
         "total_chunks_found": len(chunks),
         "final_chunks_count": len(processed_chunks_with_ref_ids),
     }
+    if query_param.gmm_info:
+        processing_info["gmm"] = query_param.gmm_info
+    raw_data["metadata"]["processing_info"] = processing_info
 
     # Build chunks_context from processed chunks with reference IDs
     chunks_context = []

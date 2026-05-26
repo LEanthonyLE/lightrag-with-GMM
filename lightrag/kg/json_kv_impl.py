@@ -96,6 +96,7 @@ class JsonKVStorage(BaseKVStorage):
                     logger.info(
                         f"[{self.workspace}] Reloading sanitized data into shared memory for {self.namespace}"
                     )
+                    # _data是共享数据，json写入做sanitization后重新适用json更新_data
                     cleaned_data = load_json(self._file_name)
                     if cleaned_data is not None:
                         self._data.clear()
@@ -105,6 +106,7 @@ class JsonKVStorage(BaseKVStorage):
 
     async def get_by_id(self, id: str) -> dict[str, Any] | None:
         async with self._storage_lock:
+            # 进程保护下的根据id查找数据，并且新增字段
             result = self._data.get(id)
             if result:
                 # Create a copy to avoid modifying the original data
@@ -136,6 +138,7 @@ class JsonKVStorage(BaseKVStorage):
 
     async def filter_keys(self, keys: set[str]) -> set[str]:
         async with self._storage_lock:
+            # _data中对应的key与我自己定义的key对比，找出自己定义中有但是_data中没有的key，查看是否缺少key
             return set(keys) - set(self._data.keys())
 
     async def upsert(self, data: dict[str, dict[str, Any]]) -> None:
@@ -164,6 +167,7 @@ class JsonKVStorage(BaseKVStorage):
             # until we release it; the yield only benefits unrelated coroutines.
             for i, (k, v) in enumerate(data.items(), start=1):
                 # For text_chunks namespace, ensure llm_cache_list field exists
+                # 一个i对应多个kv，嵌套字典
                 if self.namespace.endswith("text_chunks"):
                     if "llm_cache_list" not in v:
                         v["llm_cache_list"] = []
@@ -176,7 +180,7 @@ class JsonKVStorage(BaseKVStorage):
                     v["update_time"] = current_time
 
                 v["_id"] = k
-                await _cooperative_yield(i)
+                await _cooperative_yield(i) # 迭代到60次数据休息一次避免额外任务不能执行
 
             self._data.update(data)
             await set_all_update_flags(self.namespace, workspace=self.workspace)
@@ -201,6 +205,7 @@ class JsonKVStorage(BaseKVStorage):
                 if result is not None:
                     any_deleted = True
 
+            # 存在删除，写标志位告诉其他进程
             if any_deleted:
                 await set_all_update_flags(self.namespace, workspace=self.workspace)
 
@@ -257,7 +262,9 @@ class JsonKVStorage(BaseKVStorage):
             return data
 
         # Check first entry to see if it's already in new format
+        # iter取所有的key，next只拿走第一个键
         first_key = next(iter(data.keys()))
+        # 扁平化的数据管理结构，存在冒号且按冒号分割后为三份
         if ":" in first_key and len(first_key.split(":")) == 3:
             # Already in flattened format, return as-is
             return data

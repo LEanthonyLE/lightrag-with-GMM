@@ -44,8 +44,8 @@ def _safe_gmm_fit(
 
 def gmm_select_k(
     scores: np.ndarray,
-    min_k: int = 3,
-    max_k: int = 60,
+    min_k: int = 1,
+    max_k: int = 5,
 ) -> tuple[list[int], int]:
     """Select k results via GMM clustering on similarity scores.
 
@@ -104,8 +104,8 @@ def gmm_filter_results(
     results: list[dict[str, Any]],
     score_key: str = "distance",
     score_direction: str = "lower_better",
-    min_k: int = 3,
-    max_k: int = 60,
+    min_k: int = 1,
+    max_k: int = 5,
 ) -> tuple[list[dict[str, Any]], int]:
     """Filter a list of result dicts using GMM on their score field.
 
